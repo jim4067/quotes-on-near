@@ -4,9 +4,6 @@ use near_sdk::collections::Vector;
 use near_sdk::{env, near_bindgen};
 use std::fmt;
 
-//create a struct AniQuotes to hold the vec for the quotes and maybe the user who created them
-//create a struct Quotes to hold info about the quote like, anime_show, character, and the quote itself
-
 //NEAR INIT FUNCTION ISN'T A MUST
 
 //main struct
@@ -58,19 +55,7 @@ impl Default for Quote {
 // //core implementation for the Quote
 #[near_bindgen]
 impl Quote {
-    // pub fn new_quote(quote: String, show: String, character: String) -> Self {
-    //     // env::log_str(format!("added new quote -> {:?}", quote).as_str());
-
-    //     let quote = quote;
-    //     let show = show.into();
-    //     let character = character.into();
-
-    //     Self {
-    //         quote,
-    //         character,
-    //         show,
-    //     }
-    // }
+    //
     pub fn is_empty(&self) -> bool {
         self.quote.is_empty() && self.character.is_none() && self.show.is_none()
     }
@@ -105,13 +90,15 @@ impl AniQuotes {
     }
 
     pub fn view_quotes(&self) {
-        env::log_str("these are the saved quotes \n");
-        for (index, quote) in self.quotes.iter().enumerate() {
-            println!("index {}. -> {:?}", index, quote);
+        // env::log_str("these are the saved quotes \n");
+        for quote in self.quotes.iter() {
+            println!(" quote: {}", quote.quote);
+            println!(" show: {}", quote.show.unwrap_or("".to_string()));
+            println!(
+                " character: {}\n",
+                quote.character.unwrap_or("".to_string())
+            );
         }
-
-        //TODO
-        //implement display for quote
     }
 
     pub fn delete_quote(&mut self, index: Option<usize>) {
@@ -151,25 +138,6 @@ impl AniQuotes {
         self.quotes.clear();
     }
 }
-
-// //core logic / struct implementation
-// #[near_bindgen]
-// impl AniQuotes {
-//     pub fn add_quote(&mut self, quote: String) {
-//         //
-//         env::log_str("added quote to chain");
-//         self.quote.push(&quote);
-//     }
-
-//     // pub fn view_quote() -> Option<Vec<String>> {
-//     // //for testing using is_some or is_none to check if the option contains something
-
-//     // }
-
-//     // pub fn delete_quote() {
-//     //     //
-//     // }
-// }
 
 //tests
 #[cfg(all(test, not(target_arch = "wasm32")))]
@@ -347,8 +315,8 @@ mod tests {
         let quotes = vec![quote_one, quote_two, quote_three];
         contract.add_many_quotes(quotes);
 
-
-
+        //
+        contract.view_quotes();
     }
 
     //     #[test]
