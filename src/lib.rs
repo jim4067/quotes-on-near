@@ -56,40 +56,50 @@ impl Default for Quote {
 }
 
 // //core implementation for the Quote
-// #[near_bindgen]
-// impl Quote {
-//     pub fn new_quote(quote: String, show: String, character: String) -> Self {
-//         // env::log_str(format!("added new quote -> {:?}", quote).as_str());
+#[near_bindgen]
+impl Quote {
+    // pub fn new_quote(quote: String, show: String, character: String) -> Self {
+    //     // env::log_str(format!("added new quote -> {:?}", quote).as_str());
 
-//         let quote = quote;
-//         let show = show.into();
-//         let character = character.into();
+    //     let quote = quote;
+    //     let show = show.into();
+    //     let character = character.into();
 
-//         Self {
-//             quote,
-//             character,
-//             show,
-//         }
-//     }
-// }
+    //     Self {
+    //         quote,
+    //         character,
+    //         show,
+    //     }
+    // }
+    pub fn is_empty(&self) -> bool {
+        self.quote.is_empty() && self.character.is_none() && self.show.is_none()
+    }
+}
 
 //core implementation of the aniQuotes Struct
 #[near_bindgen]
 impl AniQuotes {
     pub fn new_quote(&mut self, #[serializer(borsh)] quote: Quote) {
-        self.quotes.push(&quote);
-        env::log_str(format!("NEW QUOTE ADDED{}", quote).as_str());
-    }
-
-    pub fn add_many_quotes(&mut self, #[serializer(borsh)] quotes: Vector<Quote>) {
-        //check if the slice is empty
-        if !quotes.is_empty() {
-            // let quotes = quotes.iter();
-            self.quotes.extend(quotes.iter());
-            env::log_str(format!("ADDED {} QUOTES", quotes.len()).as_str());
+        if quote.is_empty() {
+            env::log_str("EMPTY QUOTE!!! NOTHING ADDED... RETURNING...");
+            return;
         }
 
-        env::log_str("NO QUOTES FOUND, EXITING...");
+        self.quotes.push(&quote);
+        env::log_str(format!("NEW QUOTE ADDED{}", quote).as_str());
+        return;
+    }
+
+    pub fn add_many_quotes(&mut self, #[serializer(borsh)] quotes: Vec<Quote>) {
+        //check if the vec is empty
+        if !quotes.is_empty() {
+            // let quotes = quotes.iter();
+            env::log_str(format!("ADDED {} QUOTES", &quotes.len()).as_str());
+            self.quotes.extend(quotes); //value moved here
+            return;
+        }
+
+        env::log_str("NO QUOTES ADDED, EXITING...");
         return;
         //add values to the quotes vector
     }
@@ -104,10 +114,24 @@ impl AniQuotes {
         //implement display for quote
     }
 
-    pub fn delete_quote(&mut self, index: usize) {
-        env::log_str(format!("\nDELETING QUOTE\n {:?}", self.quotes.get(index as u64)).as_str());
+    pub fn delete_quote(&mut self, index: Option<usize>) {
+        //if the index is not supplied delete item at index 0
+        if index.is_none() {
+            let index = 0;
+            env::log_str("\nindex not supplied, deleting item at 0");
+            env::log_str(
+                format!("DELETING QUOTE quotes[{}]\n{:?}", index, self.quotes.get(index as u64)).as_str(),
+            );
+            // self.quotes.to_vec().remove(index);
+            self.quotes.swap_remove(index as u64);
+            return;
+        }
+
+        let index = index.unwrap();
+        env::log_str(format!("\nDELETING QUOTE quotes[{}]\n{:?}", index, self.quotes.get(index as u64)).as_str());
         // self.quotes.to_vec().remove(index);
         self.quotes.swap_remove(index as u64);
+        return;
     }
 
     //clears the vector but the allocated memory remains.
@@ -212,16 +236,14 @@ mod tests {
         };
 
         // println!("\n one -> {quote_one:?}\n two -> {quote_two:?}\n three{quote_three:?}");
-
-        contract.new_quote(quote_one);
-        contract.new_quote(quote_two);
-        contract.new_quote(quote_three);
+        let quotes = vec![quote_one, quote_two, quote_three];
+        contract.add_many_quotes(quotes);
 
         assert_eq!(contract.quotes.len(), 3);
     }
 
     #[test]
-    fn test_delete_everything() {
+    fn test_delete() {
         let context = get_context(false);
         testing_env!(context);
 
@@ -233,32 +255,62 @@ mod tests {
             show: "Solanin".to_string().into()
         };
 
-        contract.new_quote(quote_one);
+        let quote_two = Quote {
+            show: "Bleach".to_string().into(),
+            character: "Kyouya Sata".to_string().into(),
+            quote: "It doesn't matter how much trash you pick up. You just have a pile of trash."
+                .to_string(),
+        };
 
+        let quote_three = Quote {
+            show: None,
+            character: None,
+            quote: "this is an edge test.".to_string(),
+        };
+
+        let quote_four = Quote {
+            show: "Bleach".to_string().into(),
+            character: "Kyouya Sata".to_string().into(),
+            quote: "It doesn't matter how much trash you pick up. You just have a pile of trash."
+                .to_string(),
+        };
+
+        //add multiple quotes
+        let quotes = vec![quote_one, quote_two, quote_three, quote_four];
+        contract.add_many_quotes(quotes);
+
+        //testing deleting without params specified
+        contract.delete_quote(None);
+
+        //testing deleting one quote
+        contract.delete_quote(2.into());
+        assert_eq!(contract.quotes.len(), 2);
+
+        //test deleting everything
         contract.delete_all_quotes();
-
-        assert_eq!(contract.quotes.len(), 0);
+        assert!(contract.quotes.is_empty());
     }
 
     #[test]
-    fn test_delete_entry() {
+    fn test_adding_empty() {
         let context = get_context(false);
         testing_env!(context);
 
         let mut contract = AniQuotes::default();
 
-        let quote_one = Quote {
-            quote: "I might seem to be on the losing side to you, but I'm still fighting... Not all battles happen in the brightest, flashiest spots.".to_string(),
-            character: "Saeki Ryutaro".to_string().into(),
-            show: "Solanin".to_string().into()
+        //testing empty string
+        let empty_quote = Quote {
+            quote: "".to_string(),
+            show: None,
+            character: None,
         };
-
-        contract.new_quote(quote_one);
-
-        contract.delete_quote(0);
-
+        contract.new_quote(empty_quote);
         assert!(contract.quotes.is_empty());
-        // assert_eq!(contract.quotes.len(), 0);
+
+        //testing for adding vector
+        let empty_vector: Vec<Quote> = Vec::new();
+        contract.add_many_quotes(empty_vector);
+        assert!(contract.quotes.is_empty());
     }
 
     #[test]
@@ -287,13 +339,7 @@ mod tests {
             quote: "this is an edge test.".to_string(),
         };
 
-        let one = vec!["one"];
-
-        // let quotes : Vector<Quote> = [quote_one, quote_two, quote_three];
-        
-
-        // implement add many for contracts
-        // contract.add_many_quotes(quotes);
+    
     }
 
     //     #[test]
