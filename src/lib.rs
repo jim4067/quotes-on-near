@@ -86,7 +86,7 @@ impl AniQuotes {
         }
 
         self.quotes.push(&quote);
-        env::log_str(format!("NEW QUOTE ADDED{}", quote).as_str());
+        env::log_str(format!("NEW QUOTE ADDED -> {:?}", quote.quote).as_str());
         return;
     }
 
@@ -94,12 +94,12 @@ impl AniQuotes {
         //check if the vec is empty
         if !quotes.is_empty() {
             // let quotes = quotes.iter();
-            env::log_str(format!("ADDED {} QUOTES", &quotes.len()).as_str());
+            env::log_str(format!("\nADDED {} QUOTES", &quotes.len()).as_str());
             self.quotes.extend(quotes); //value moved here
             return;
         }
 
-        env::log_str("NO QUOTES ADDED, EXITING...");
+        env::log_str("\nNO QUOTES ADDED, EXITING...\n");
         return;
         //add values to the quotes vector
     }
@@ -118,9 +118,12 @@ impl AniQuotes {
         //if the index is not supplied delete item at index 0
         if index.is_none() {
             let index = 0;
-            env::log_str("\nindex not supplied, deleting item at 0");
             env::log_str(
-                format!("DELETING QUOTE quotes[{}]\n{:?}", index, self.quotes.get(index as u64)).as_str(),
+                format!(
+                    "\nDELETING QUOTE quotes[{index}]\n{:?}", //PAY ATTENTION TO INDEX HERE
+                    self.quotes.get(index as u64).unwrap().quote
+                )
+                .as_str(),
             );
             // self.quotes.to_vec().remove(index);
             self.quotes.swap_remove(index as u64);
@@ -128,7 +131,14 @@ impl AniQuotes {
         }
 
         let index = index.unwrap();
-        env::log_str(format!("\nDELETING QUOTE quotes[{}]\n{:?}", index, self.quotes.get(index as u64)).as_str());
+        env::log_str(
+            format!(
+                "\nDELETING QUOTE quotes[{}]\n{:?}",
+                index,
+                self.quotes.get(index as u64).unwrap().quote
+            )
+            .as_str(),
+        );
         // self.quotes.to_vec().remove(index);
         self.quotes.swap_remove(index as u64);
         return;
@@ -174,11 +184,6 @@ mod tests {
             .signer_account_id("bob_near".to_string().try_into().unwrap())
             .is_view(is_view)
             .build()
-    }
-
-    #[test]
-    fn dummy() {
-        println!("this surely should work");
     }
 
     #[test]
@@ -339,7 +344,11 @@ mod tests {
             quote: "this is an edge test.".to_string(),
         };
 
-    
+        let quotes = vec![quote_one, quote_two, quote_three];
+        contract.add_many_quotes(quotes);
+
+
+
     }
 
     //     #[test]
