@@ -165,12 +165,6 @@ mod tests {
         let show = Some("my special creations".to_string());
         let character = Some("the foolish one".to_string());
 
-        // let show = "peak shonen".to_string();
-        // let character = "peak".to_string();
-
-        // let one = Quote::new_quote(quote, show, character);
-        // println!("this is the quote struct -> {:?}", one);
-
         let two = Quote {
             quote,
             show,
@@ -208,7 +202,6 @@ mod tests {
             quote: "this is an edge test.".to_string(),
         };
 
-        // println!("\n one -> {quote_one:?}\n two -> {quote_two:?}\n three{quote_three:?}");
         let quotes = vec![quote_one, quote_two, quote_three];
         contract.add_many_quotes(quotes);
 
@@ -318,39 +311,4 @@ mod tests {
         //
         contract.view_quotes();
     }
-
-    //     #[test]
-    //     fn create_and_read_quote() {
-    //         let context = get_context(false);
-    //         testing_env!(context);
-
-    //         let mut contract = AniQuotes::default();
-
-    //         let quote = "A farewell is like the other side of a coin. It will only happen when there is an encounter. Rather than dreading the day we have to part, shouldn't we be happy that we had the chance to meet today instead?";
-    //         contract.add_quote(quote.to_string());
-    //         contract.add_quote("How does it handle two values".to_string());
-
-    //         //since we only added one quote we expect the first index of
-    //         //our vec to be the quote when we read it
-    //         println!("the contract length -> {:?}", contract.quote.len());
-
-    //         let mut quotes_iterator = contract.quote.iter();
-
-    //         println!(
-    //             "the items in the contract {:?}",
-    //             // contract.quote.iter().next().unwrap()
-    //             quotes_iterator.next()
-    //         );
-    //         println!(
-    //             "the second one -> {:?}",
-    //             // contract.quote.iter().next().unwrap()
-    //             quotes_iterator.next()
-    //         );
-    //         // for item in contract.quote.iter() {
-    //         //     println!("the items here -> {:?}", item);
-    //         // }
-    //         // println!("the items in the contract -> {:?}", contract.quote);
-    //     }
-
-    //     //test what happens when more than one quote is added
 }
